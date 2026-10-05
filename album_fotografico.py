@@ -2,23 +2,23 @@ def carica_da_file(file_path):
     """Carica le foto dal file, creando un nuovo anno ogni volta che compare per la prima volta"""
     album = {}
     try:
-        file_album = open("album_fotografico.csv", "r")
-        linee = file_album.readlines()
-        for line in linee[1:]:
-            line = line.strip()
-            if not line:
-                continue
-            parti = line.strip(",")
-            if len(parti) == 5:
-                codice = parti[0]
-                titolo = parti[1]
-                autore = parti[2]
-                mese = parti[3]
-                anno = parti[4]
-            # aggiunge l'anno se non esiste
-                if anno not in album:
-                    album[anno] = []
-                album[anno].append([codice, titolo, autore, mese, anno])
+        with open(file_path, "r") as file_album:
+            linee = file_album.readlines()
+            for line in linee[1:]:
+                line = line.strip()
+                if not line:
+                    continue
+                parti = line.split(",")
+                if len(parti) == 5:
+                    codice = parti[0]
+                    titolo = parti[1]
+                    autore = parti[2]
+                    mese = int(parti[3])
+                    anno = int(parti[4])
+                # aggiunge l'anno se non esiste
+                    if anno not in album:
+                        album[anno] = []
+                    album[anno].append([codice, titolo, autore, mese, anno])
         return album
     except FileNotFoundError:
         print("None")
@@ -26,17 +26,45 @@ def carica_da_file(file_path):
 
 def aggiungi_foto(album, codice, titolo, autore, mese, anno, file_path):
     """Aggiunge una foto all'album, creando l'anno al volo se non è ancora presente"""
-    # TODO
+    if not (1 <= mese <= 12):
+        return None
+
+    for y in album:
+        for foto in album[y]:
+            if foto[0] == codice:
+                return None
+    # devo aprire il file in modo che prima lo leggo e leggo tutte le righe, poi lo apro in modo che posso scriverci e modificarlo.
+    try:
+        with open(file_path, "r") as f:
+            righe = f.readlines()
+
+        with open(file_path, "w") as f:
+            for riga in righe: #scrive un file nuovo, e ci riscrive tutte le righe del file che abbiamo"
+                f.write(riga)                                       #--> print(riga, end="", file=f)
+            f.write(f"{codice},{titolo},{autore},{mese},{anno}\n") # si poteva scrivere tutto in modo diverso --> print (f"{codice},{titolo},{autore},{mese},{anno}", file=f)
+    except FileNotFoundError:
+        return None
 
 
 def cerca_foto(album, codice):
     """Cerca una foto nell'album dato il codice"""
-    # TODO
+    for anno in album:
+        for foto in album[anno]:
+            if foto[0] == codice:
+                return f"{foto[0]},{foto[1]},{foto[2]},{foto[3]},{foto[4]}"
+    return None
 
 
 def elenco_foto_anno_per_titolo(album, anno):
     """Ordina i titoli delle foto di un dato anno in ordine alfabetico"""
-    # TODO
+    if anno not in album:
+        return None
+    titoli = []
+    for foto in album[anno]:
+        titoli.append(foto[1])
+    titoli.sort()
+    return titoli
+
 
 
 def main():
